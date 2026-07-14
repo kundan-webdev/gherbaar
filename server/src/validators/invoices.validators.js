@@ -11,6 +11,16 @@ export const createInvoiceRules = [
   body('note').optional().isString(),
 ];
 
+export const updateInvoiceRules = [
+  body('periodFrom').optional().isISO8601(),
+  body('periodTo').optional().isISO8601(),
+  body('prevReading').optional().isFloat({ min: 0 }),
+  body('currReading').optional().isFloat({ min: 0 }),
+  body('previousDues').optional().isFloat({ min: 0 }),
+  body('upiId').optional({ checkFalsy: true }).isString(),
+  body('note').optional().isString(),
+];
+
 export const updateStatusRules = [
   body('status')
     .isIn(['draft', 'sent', 'overdue', 'cancelled'])

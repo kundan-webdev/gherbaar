@@ -14,10 +14,12 @@ import TenantMaintenancePage from './pages/tenant/TenantMaintenancePage.jsx';
 import TenantMaintenanceDetailPage from './pages/tenant/TenantMaintenanceDetailPage.jsx';
 import PropertiesListPage from './pages/properties/PropertiesListPage.jsx';
 import TenantsListPage from './pages/tenants/TenantsListPage.jsx';
+import TenantDetailPage from './pages/tenants/TenantDetailPage.jsx';
 import LeasesListPage from './pages/leases/LeasesListPage.jsx';
 import InvoiceGeneratePage from './pages/billing/InvoiceGeneratePage.jsx';
 import InvoiceHistoryPage from './pages/billing/InvoiceHistoryPage.jsx';
 import InvoiceDetailPage from './pages/billing/InvoiceDetailPage.jsx';
+import InvoiceEditPage from './pages/billing/InvoiceEditPage.jsx';
 import ReceiptDetailPage from './pages/billing/ReceiptDetailPage.jsx';
 import TenantReceiptDetailPage from './pages/tenant/TenantReceiptDetailPage.jsx';
 import ExpensesPage from './pages/expenses/ExpensesPage.jsx';
@@ -25,6 +27,7 @@ import MaintenanceListPage from './pages/maintenance/MaintenanceListPage.jsx';
 import MaintenanceDetailPage from './pages/maintenance/MaintenanceDetailPage.jsx';
 import ReportsPage from './pages/reports/ReportsPage.jsx';
 import FinancialReportsPage from './pages/reports/FinancialReportsPage.jsx';
+import BalanceSheetPage from './pages/reports/BalanceSheetPage.jsx';
 import ManagersListPage from './pages/managers/ManagersListPage.jsx';
 import ManagerHomePage from './pages/manager/ManagerHomePage.jsx';
 import ManagerPropertiesPage from './pages/manager/ManagerPropertiesPage.jsx';
@@ -54,16 +57,19 @@ export default function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/properties" element={<PropertiesListPage />} />
         <Route path="/tenants" element={<TenantsListPage />} />
+        <Route path="/tenants/:id" element={<TenantDetailPage />} />
         <Route path="/leases" element={<LeasesListPage />} />
         <Route path="/billing" element={<InvoiceHistoryPage />} />
         <Route path="/billing/generate" element={<InvoiceGeneratePage />} />
         <Route path="/billing/:id" element={<InvoiceDetailPage />} />
+        <Route path="/billing/:id/edit" element={<InvoiceEditPage />} />
         <Route path="/billing/:invoiceId/payments/:paymentId" element={<ReceiptDetailPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
         <Route path="/maintenance" element={<MaintenanceListPage />} />
         <Route path="/maintenance/:id" element={<MaintenanceDetailPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/reports/financials" element={<FinancialReportsPage />} />
+        <Route path="/reports/balance-sheet" element={<BalanceSheetPage />} />
         <Route path="/managers" element={<ManagersListPage />} />
       </Route>
 

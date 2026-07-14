@@ -12,5 +12,6 @@ router.get('/expense-summary', controller.expenseSummary);
 router.get('/occupancy', controller.occupancy);
 router.get('/dashboard', controller.dashboardSummary);
 router.get('/financials', controller.financialSummary);
+router.get('/balance-sheet', controller.balanceSheet);
 
 export default router;

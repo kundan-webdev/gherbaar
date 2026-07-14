@@ -34,6 +34,8 @@ export async function createTenantWithAccount(landlordId, payload) {
       email,
       idProofType: payload.idProofType,
       idProofNumber: payload.idProofNumber,
+      aadhaarNumber: payload.aadhaarNumber,
+      moveInDate: payload.moveInDate || null,
       emergencyContact: payload.emergencyContact,
     });
   } catch (err) {

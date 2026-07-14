@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { IndianRupee } from 'lucide-react';
+import { IndianRupee, Pencil } from 'lucide-react';
 import { getInvoice, recordPayment, listPayments } from '../../features/billing/invoicesApi.js';
 import { InvoicePreview } from '../../features/billing/components/InvoicePreview.jsx';
 import { InvoiceQrCode } from '../../features/billing/components/InvoiceQrCode.jsx';
@@ -44,6 +44,11 @@ export default function InvoiceDetailPage() {
         <h1 style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           Invoice {invoice.invoiceNumber} <StatusBadge status={invoice.status} />
         </h1>
+        {['draft', 'sent'].includes(invoice.status) && (
+          <Link className="btn secondary" to={`/billing/${id}/edit`}>
+            <Pencil size={15} /> Edit Invoice
+          </Link>
+        )}
       </div>
 
       <InvoicePreview invoice={invoice} ref={previewRef}>

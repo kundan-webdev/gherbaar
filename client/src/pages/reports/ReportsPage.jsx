@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { IndianRupee, Wallet, Receipt, Home, TrendingUp } from 'lucide-react';
+import { IndianRupee, Wallet, Receipt, Home, TrendingUp, Scale } from 'lucide-react';
 import { getCollectionSummary, getExpenseSummary, getOccupancy } from '../../features/reports/reportsApi.js';
 import { StatCard } from '../../components/StatCard.jsx';
 
@@ -14,9 +14,14 @@ export default function ReportsPage() {
     <div>
       <div className="page-header">
         <h1>Reports</h1>
-        <Link className="btn" to="/reports/financials">
-          <TrendingUp size={15} /> Financial Reports
-        </Link>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Link className="btn secondary" to="/reports/balance-sheet">
+            <Scale size={15} /> Balance Sheet
+          </Link>
+          <Link className="btn" to="/reports/financials">
+            <TrendingUp size={15} /> Financial Reports
+          </Link>
+        </div>
       </div>
 
       <div className="stat-grid" style={{ marginBottom: 24 }}>
@@ -28,7 +33,7 @@ export default function ReportsPage() {
 
       <div className="card">
         <h3 style={{ marginBottom: 14 }}>Occupancy</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 16 }}>
           <div>
             <div className="muted" style={{ fontSize: 13 }}>
               Total Units

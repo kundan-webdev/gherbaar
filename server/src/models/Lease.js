@@ -8,6 +8,7 @@ const leaseSchema = new mongoose.Schema(
     landlord: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     rentAmount: { type: Number, required: true },
     securityDeposit: { type: Number, default: 0 },
+    advanceRent: { type: Number, default: 0 },
     electricityRatePerUnit: { type: Number, default: 8 },
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: null },

@@ -114,7 +114,7 @@ export default function MaintenanceDetailPage() {
 
         <PhotoGallery photos={ticket.photos} />
 
-        <form onSubmit={handleUploadSubmit} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14 }}>
+        <form onSubmit={handleUploadSubmit} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
           <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={(e) => setFiles([...e.target.files])} />
           <button className="btn secondary" type="submit" disabled={files.length === 0 || uploadMutation.isPending}>
             <Upload size={14} /> Add Photos
@@ -143,9 +143,9 @@ export default function MaintenanceDetailPage() {
           ))}
         </div>
 
-        <form onSubmit={handleCommentSubmit} style={{ display: 'flex', gap: 8 }}>
+        <form onSubmit={handleCommentSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input
-            style={{ flex: 1, padding: '9px 11px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}
+            style={{ flex: 1, minWidth: 160, padding: '9px 11px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}
             placeholder="Add a response…"
             value={comment}
             onChange={(e) => setComment(e.target.value)}

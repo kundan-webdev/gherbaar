@@ -57,7 +57,7 @@ export function InvoiceForm() {
         </select>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="field-pair">
         <div className="form-group">
           <label>From Date</label>
           <input type="date" required value={form.periodFrom} onChange={(e) => setForm({ ...form, periodFrom: e.target.value })} />
@@ -68,7 +68,7 @@ export function InvoiceForm() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div className="field-pair">
         <div className="form-group">
           <label>Previous Meter Reading</label>
           <input type="number" required value={form.prevReading} onChange={(e) => setForm({ ...form, prevReading: e.target.value })} />

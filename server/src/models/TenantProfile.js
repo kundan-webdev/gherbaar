@@ -9,6 +9,11 @@ const tenantProfileSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true, lowercase: true },
     idProofType: { type: String, trim: true },
     idProofNumber: { type: String, trim: true },
+    aadhaarNumber: { type: String, trim: true },
+    moveInDate: { type: Date, default: null },
+    documents: [{ type: String }],
+    documentsVerified: { type: Boolean, default: false },
+    verifiedAt: { type: Date, default: null },
     emergencyContact: {
       name: { type: String, trim: true },
       phone: { type: String, trim: true },

@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, KeyRound, Trash2 } from 'lucide-react';
+import { UserPlus, KeyRound, Trash2, Pencil, Check, X } from 'lucide-react';
 import { listManagers, createManager, updateManager, removeManager } from '../../features/managers/managersApi.js';
 import { listProperties } from '../../features/properties/propertiesApi.js';
 import { StatusBadge } from '../../components/StatusBadge.jsx';
 
 const emptyForm = { name: '', phone: '', email: '', properties: [] };
+const emptyEditForm = { name: '', phone: '', isActive: true };
 
 export default function ManagersListPage() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(emptyForm);
   const [issuedCredentials, setIssuedCredentials] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState(emptyEditForm);
 
   const { data, isLoading } = useQuery({ queryKey: ['managers'], queryFn: () => listManagers() });
   const { data: properties } = useQuery({ queryKey: ['properties'], queryFn: () => listProperties({ limit: 100 }) });
@@ -36,10 +39,27 @@ export default function ManagersListPage() {
     onSuccess: invalidate,
   });
 
+  const editMutation = useMutation({
+    mutationFn: ({ id, payload }) => updateManager(id, payload),
+    onSuccess: () => {
+      invalidate();
+      setEditingId(null);
+    },
+  });
+
   function handleSubmit(e) {
     e.preventDefault();
     setIssuedCredentials(null);
     createMutation.mutate(form);
+  }
+
+  function startEdit(manager) {
+    setEditingId(manager._id);
+    setEditForm({ name: manager.name, phone: manager.phone, isActive: manager.isActive });
+  }
+
+  function saveEdit(id) {
+    editMutation.mutate({ id, payload: editForm });
   }
 
   function togglePropertyForForm(propertyId) {
@@ -145,47 +165,117 @@ export default function ManagersListPage() {
               </tr>
             </thead>
             <tbody>
-              {data?.items.map((manager) => (
-                <tr key={manager._id}>
-                  <td>{manager.name}</td>
-                  <td>{manager.phone}</td>
-                  <td>{manager.email}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 260 }}>
-                      {properties?.items.map((p) => {
-                        const assigned = manager.properties.some((mp) => mp._id === p._id);
-                        return (
-                          <button
-                            key={p._id}
-                            onClick={() => togglePropertyForManager(manager, p._id)}
-                            className={`badge badge-${assigned ? 'success' : 'neutral'}`}
-                            style={{ border: 'none', cursor: 'pointer' }}
-                            title={assigned ? 'Click to unassign' : 'Click to assign'}
-                          >
-                            {p.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </td>
-                  <td>
-                    <StatusBadge status={manager.isActive ? 'active' : 'closed'} />
-                  </td>
-                  <td>
-                    <button
-                      className="btn secondary"
-                      style={{ padding: '4px 8px' }}
-                      onClick={() => {
-                        if (window.confirm(`Remove manager ${manager.name}? Their login will be disabled.`)) {
-                          removeMutation.mutate(manager._id);
-                        }
-                      }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {data?.items.map((manager) => {
+                const isEditing = editingId === manager._id;
+                return (
+                  <tr key={manager._id}>
+                    {isEditing ? (
+                      <>
+                        <td>
+                          <input
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            value={editForm.phone}
+                            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                            style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}
+                          />
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{manager.name}</td>
+                        <td>{manager.phone}</td>
+                      </>
+                    )}
+                    <td>{manager.email}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 260 }}>
+                        {properties?.items.map((p) => {
+                          const assigned = manager.properties.some((mp) => mp._id === p._id);
+                          return (
+                            <button
+                              key={p._id}
+                              onClick={() => togglePropertyForManager(manager, p._id)}
+                              className={`badge badge-${assigned ? 'success' : 'neutral'}`}
+                              style={{ border: 'none', cursor: 'pointer' }}
+                              title={assigned ? 'Click to unassign' : 'Click to assign'}
+                            >
+                              {p.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+                    <td>
+                      {isEditing ? (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={editForm.isActive}
+                            onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                          />
+                          Active
+                        </label>
+                      ) : (
+                        <StatusBadge status={manager.isActive ? 'active' : 'closed'} />
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {isEditing ? (
+                          <>
+                            <button
+                              className="btn secondary"
+                              style={{ padding: '4px 8px' }}
+                              onClick={() => saveEdit(manager._id)}
+                              disabled={editMutation.isPending}
+                              title="Save"
+                            >
+                              <Check size={13} />
+                            </button>
+                            <button
+                              className="btn secondary"
+                              style={{ padding: '4px 8px' }}
+                              onClick={() => setEditingId(null)}
+                              title="Cancel"
+                            >
+                              <X size={13} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="btn secondary"
+                              style={{ padding: '4px 8px' }}
+                              onClick={() => startEdit(manager)}
+                              title="Edit"
+                            >
+                              <Pencil size={13} />
+                            </button>
+                            <button
+                              className="btn secondary"
+                              style={{ padding: '4px 8px' }}
+                              onClick={() => {
+                                if (window.confirm(`Remove manager ${manager.name}? Their login will be disabled.`)) {
+                                  removeMutation.mutate(manager._id);
+                                }
+                              }}
+                              title="Remove"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {data?.items.length === 0 && <p className="muted" style={{ marginTop: 12 }}>No managers yet.</p>}

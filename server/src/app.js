@@ -4,7 +4,7 @@ import { env } from './config/env.js';
 import routes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
-import { uploadsRoot } from './middleware/upload.js';
+import { uploadsRoot } from './services/storageService.js';
 
 export const app = express();
 

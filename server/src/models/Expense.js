@@ -6,7 +6,7 @@ const expenseSchema = new mongoose.Schema(
     landlord: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     category: {
       type: String,
-      enum: ['maintenance', 'repair', 'tax', 'insurance', 'utility', 'other'],
+      enum: ['maintenance', 'repair', 'tax', 'emi', 'electricity', 'utility', 'other'],
       default: 'other',
     },
     amount: { type: Number, required: true },

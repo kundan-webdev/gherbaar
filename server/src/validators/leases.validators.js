@@ -7,4 +7,6 @@ export const createLeaseRules = [
   body('rentAmount').isFloat({ min: 0 }).withMessage('Rent amount is required'),
   body('startDate').isISO8601().withMessage('Valid start date is required'),
   body('electricityRatePerUnit').optional().isFloat({ min: 0 }),
+  body('securityDeposit').optional().isFloat({ min: 0 }),
+  body('advanceRent').optional().isFloat({ min: 0 }),
 ];

@@ -6,6 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { getPagination, paginatedResponse } from '../utils/pagination.js';
 import { notify } from '../services/notificationService.js';
 import { getManagerPropertyIds } from '../utils/managerAccess.js';
+import { storeFiles } from '../services/storageService.js';
 
 function maintenanceLinkForRole(role, ticketId) {
   if (role === 'tenant') return `/tenant/maintenance/${ticketId}`;
@@ -153,7 +154,8 @@ export const uploadPhotos = asyncHandler(async (req, res) => {
     throw ApiError.badRequest(`A ticket can have at most ${MAX_PHOTOS_PER_TICKET} photos`);
   }
 
-  ticket.photos.push(...req.files.map((file) => `/uploads/maintenance/${file.filename}`));
+  const urls = await storeFiles(req.files, 'maintenance');
+  ticket.photos.push(...urls);
   await ticket.save();
   res.status(201).json({ ticket });
 });

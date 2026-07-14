@@ -18,8 +18,8 @@ const propertySchema = new mongoose.Schema(
     pincode: { type: String, trim: true },
     type: {
       type: String,
-      enum: ['apartment', 'independent_house', 'pg', 'commercial'],
-      default: 'apartment',
+      enum: ['flat', 'apartment', 'independent_house', 'pg', 'commercial'],
+      default: 'flat',
     },
     units: [unitSchema],
     amenities: [{ type: String }],

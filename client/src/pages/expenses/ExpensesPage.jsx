@@ -50,7 +50,8 @@ export default function ExpensesPage() {
             <option value="maintenance">Maintenance</option>
             <option value="repair">Repair</option>
             <option value="tax">Tax</option>
-            <option value="insurance">Insurance</option>
+            <option value="emi">EMI</option>
+            <option value="electricity">Electricity</option>
             <option value="utility">Utility</option>
             <option value="other">Other</option>
           </select>

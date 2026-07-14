@@ -82,7 +82,7 @@ export function NotificationBell() {
               position: 'absolute',
               right: 0,
               top: 'calc(100% + 8px)',
-              width: 340,
+              width: 'min(340px, calc(100vw - 40px))',
               maxHeight: 420,
               overflowY: 'auto',
               zIndex: 11,

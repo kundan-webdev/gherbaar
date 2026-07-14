@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, KeyRound } from 'lucide-react';
+import { UserPlus, KeyRound, Eye, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { listTenants, createTenant } from '../../features/tenants/tenantsApi.js';
 
-const emptyForm = { name: '', phone: '', email: '' };
+const emptyForm = { name: '', phone: '', email: '', aadhaarNumber: '', moveInDate: '' };
 
 export default function TenantsListPage() {
   const queryClient = useQueryClient();
@@ -55,7 +56,7 @@ export default function TenantsListPage() {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="card form-grid" style={{ marginBottom: 24, gridTemplateColumns: '1fr 1fr 1fr auto', alignItems: 'end' }}>
+      <form onSubmit={handleSubmit} className="card form-grid" style={{ marginBottom: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', alignItems: 'end' }}>
         <div className="form-group" style={{ marginBottom: 0 }}>
           <label>Name</label>
           <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -67,6 +68,19 @@ export default function TenantsListPage() {
         <div className="form-group" style={{ marginBottom: 0 }}>
           <label>Email (used as tenant login id)</label>
           <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label>Aadhaar Number</label>
+          <input
+            value={form.aadhaarNumber}
+            maxLength={12}
+            placeholder="12-digit Aadhaar"
+            onChange={(e) => setForm({ ...form, aadhaarNumber: e.target.value.replace(/\D/g, '') })}
+          />
+        </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label>Move-in Date</label>
+          <input type="date" value={form.moveInDate} onChange={(e) => setForm({ ...form, moveInDate: e.target.value })} />
         </div>
         <button className="btn" type="submit" disabled={createMutation.isPending}>
           <UserPlus size={15} /> Add Tenant
@@ -83,6 +97,9 @@ export default function TenantsListPage() {
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Email</th>
+                <th>Move-in</th>
+                <th>Documents</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -91,6 +108,18 @@ export default function TenantsListPage() {
                   <td>{tenant.name}</td>
                   <td>{tenant.phone}</td>
                   <td>{tenant.email || '-'}</td>
+                  <td>{tenant.moveInDate ? new Date(tenant.moveInDate).toLocaleDateString('en-IN') : '-'}</td>
+                  <td>
+                    <span className={`badge badge-${tenant.documentsVerified ? 'success' : 'warning'}`}>
+                      {tenant.documentsVerified ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
+                      {tenant.documentsVerified ? 'Verified' : 'Pending'}
+                    </span>
+                  </td>
+                  <td>
+                    <Link to={`/tenants/${tenant._id}`} className="btn secondary" style={{ padding: '4px 10px', fontSize: 12 }}>
+                      <Eye size={13} /> View / Edit
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

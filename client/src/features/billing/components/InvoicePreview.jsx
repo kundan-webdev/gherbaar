@@ -8,9 +8,9 @@ export const InvoicePreview = forwardRef(function InvoicePreview({ invoice, chil
   return (
     <div
       ref={ref}
+      className="doc-preview"
       style={{
         background: '#faf8f1',
-        padding: 30,
         border: '1px solid #ddd',
         borderRadius: 'var(--radius-md)',
         boxShadow: 'var(--shadow-md)',

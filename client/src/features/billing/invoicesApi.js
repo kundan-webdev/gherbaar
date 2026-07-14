@@ -15,6 +15,11 @@ export async function createInvoice(payload) {
   return data.invoice;
 }
 
+export async function updateInvoice(id, payload) {
+  const { data } = await axiosClient.patch(`/invoices/${id}`, payload);
+  return data.invoice;
+}
+
 export async function updateInvoiceStatus(id, payload) {
   const { data } = await axiosClient.patch(`/invoices/${id}/status`, payload);
   return data.invoice;

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { listProperties, createProperty, addUnit } from '../../features/properties/propertiesApi.js';
 
-const emptyForm = { name: '', addressLine: '', city: '', type: 'apartment' };
+const emptyForm = { name: '', addressLine: '', city: '', type: 'flat' };
 
 export default function PropertiesListPage() {
   const queryClient = useQueryClient();
@@ -43,7 +43,7 @@ export default function PropertiesListPage() {
         <h1>Properties</h1>
       </div>
 
-      <form onSubmit={handleCreate} className="card form-grid" style={{ marginBottom: 24, gridTemplateColumns: '1fr 1fr 1fr 1fr auto', alignItems: 'end' }}>
+      <form onSubmit={handleCreate} className="card form-grid" style={{ marginBottom: 24, gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', alignItems: 'end' }}>
         <div className="form-group" style={{ marginBottom: 0 }}>
           <label>Name</label>
           <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -59,6 +59,7 @@ export default function PropertiesListPage() {
         <div className="form-group" style={{ marginBottom: 0 }}>
           <label>Type</label>
           <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+            <option value="flat">Flat</option>
             <option value="apartment">Apartment</option>
             <option value="independent_house">Independent House</option>
             <option value="pg">PG</option>
@@ -106,7 +107,7 @@ export default function PropertiesListPage() {
               </div>
               <form
                 onSubmit={(e) => handleAddUnit(e, property._id)}
-                style={{ display: 'flex', gap: 8, marginTop: 14, alignItems: 'end' }}
+                style={{ display: 'flex', gap: 8, marginTop: 14, alignItems: 'end', flexWrap: 'wrap' }}
               >
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>Unit No</label>

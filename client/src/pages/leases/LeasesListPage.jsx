@@ -11,6 +11,8 @@ const emptyForm = {
   unitId: '',
   tenant: '',
   rentAmount: '',
+  securityDeposit: '',
+  advanceRent: '',
   electricityRatePerUnit: 8,
   startDate: '',
   billingCycleDay: 1,
@@ -36,7 +38,22 @@ export default function LeasesListPage() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    createMutation.mutate({ ...form, rentAmount: Number(form.rentAmount), electricityRatePerUnit: Number(form.electricityRatePerUnit) });
+    createMutation.mutate({
+      ...form,
+      rentAmount: Number(form.rentAmount),
+      securityDeposit: Number(form.securityDeposit) || 0,
+      advanceRent: Number(form.advanceRent) || 0,
+      electricityRatePerUnit: Number(form.electricityRatePerUnit),
+    });
+  }
+
+  function handleRentChange(value) {
+    setForm((f) => ({
+      ...f,
+      rentAmount: value,
+      // Advance is typically 1 month's rent — pre-fill it until the landlord edits it themselves.
+      advanceRent: f.advanceRent === '' ? value : f.advanceRent,
+    }));
   }
 
   return (
@@ -81,7 +98,19 @@ export default function LeasesListPage() {
         </div>
         <div className="form-group">
           <label>Rent Amount (₹)</label>
-          <input type="number" required value={form.rentAmount} onChange={(e) => setForm({ ...form, rentAmount: e.target.value })} />
+          <input type="number" required value={form.rentAmount} onChange={(e) => handleRentChange(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Security Deposit (₹)</label>
+          <input
+            type="number"
+            value={form.securityDeposit}
+            onChange={(e) => setForm({ ...form, securityDeposit: e.target.value })}
+          />
+        </div>
+        <div className="form-group">
+          <label>Advance Rent (₹, usually 1 month)</label>
+          <input type="number" value={form.advanceRent} onChange={(e) => setForm({ ...form, advanceRent: e.target.value })} />
         </div>
         <div className="form-group">
           <label>Electricity Rate (₹/unit)</label>
@@ -106,6 +135,8 @@ export default function LeasesListPage() {
                 <th>Property</th>
                 <th>Tenant</th>
                 <th>Rent</th>
+                <th>Security Deposit</th>
+                <th>Advance Rent</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -115,6 +146,8 @@ export default function LeasesListPage() {
                   <td>{lease.property?.name}</td>
                   <td>{lease.tenant?.name}</td>
                   <td>₹{lease.rentAmount}</td>
+                  <td>₹{lease.securityDeposit || 0}</td>
+                  <td>₹{lease.advanceRent || 0}</td>
                   <td>
                     <StatusBadge status={lease.status} />
                   </td>

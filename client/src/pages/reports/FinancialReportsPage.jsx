@@ -29,11 +29,40 @@ const PRESETS = [
   { key: 'custom', label: 'Custom range' },
 ];
 
+const BREAKDOWN_VIEWS = [
+  { key: 'monthly', label: 'Monthly' },
+  { key: 'yearly', label: 'Yearly' },
+  { key: 'all', label: 'All' },
+];
+
+function groupBreakdown(monthly, view) {
+  if (view === 'monthly') return monthly.map((m) => ({ key: m.month, ...m }));
+
+  if (view === 'yearly') {
+    const byYear = new Map();
+    for (const m of monthly) {
+      const year = m.month.slice(0, 4);
+      const existing = byYear.get(year) || { key: year, month: year, income: 0, expenses: 0 };
+      existing.income += m.income;
+      existing.expenses += m.expenses;
+      byYear.set(year, existing);
+    }
+    return [...byYear.values()].sort((a, b) => a.key.localeCompare(b.key)).map((y) => ({ ...y, net: y.income - y.expenses }));
+  }
+
+  const total = monthly.reduce(
+    (acc, m) => ({ income: acc.income + m.income, expenses: acc.expenses + m.expenses }),
+    { income: 0, expenses: 0 }
+  );
+  return [{ key: 'all', month: 'All time (selected range)', income: total.income, expenses: total.expenses, net: total.income - total.expenses }];
+}
+
 export default function FinancialReportsPage() {
   const [presetKey, setPresetKey] = useState('currentFY');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
   const [propertyId, setPropertyId] = useState('');
+  const [breakdownView, setBreakdownView] = useState('monthly');
 
   const activePreset = PRESETS.find((p) => p.key === presetKey);
   const from = presetKey === 'custom' ? customFrom : activePreset.from;
@@ -50,6 +79,8 @@ export default function FinancialReportsPage() {
     if (!from || !to) return '';
     return `${new Date(from).toLocaleDateString('en-IN')} – ${new Date(to).toLocaleDateString('en-IN')}`;
   }, [from, to]);
+
+  const breakdownRows = useMemo(() => (data ? groupBreakdown(data.monthly, breakdownView) : []), [data, breakdownView]);
 
   return (
     <div>
@@ -141,30 +172,45 @@ export default function FinancialReportsPage() {
           </div>
 
           <div className="card table-scroll">
-            <h3 style={{ marginBottom: 14 }}>Monthly Breakdown</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+              <h3>Breakdown</h3>
+              <div style={{ display: 'flex', gap: 4, background: 'var(--color-surface-alt)', padding: 4, borderRadius: 'var(--radius-sm)' }}>
+                {BREAKDOWN_VIEWS.map((v) => (
+                  <button
+                    key={v.key}
+                    type="button"
+                    onClick={() => setBreakdownView(v.key)}
+                    className={breakdownView === v.key ? 'btn' : 'btn secondary'}
+                    style={{ padding: '5px 14px', fontSize: 12, boxShadow: 'none', border: breakdownView === v.key ? 'none' : undefined }}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <table>
               <thead>
                 <tr>
-                  <th>Month</th>
+                  <th>{breakdownView === 'monthly' ? 'Month' : breakdownView === 'yearly' ? 'Year' : 'Period'}</th>
                   <th>Income</th>
                   <th>Expenses</th>
                   <th>Net</th>
                 </tr>
               </thead>
               <tbody>
-                {data.monthly.map((m) => (
-                  <tr key={m.month}>
-                    <td>{m.month}</td>
-                    <td>₹{m.income.toFixed(2)}</td>
-                    <td>₹{m.expenses.toFixed(2)}</td>
-                    <td style={{ fontWeight: 600, color: m.net >= 0 ? 'var(--color-success-text)' : 'var(--color-danger-text)' }}>
-                      ₹{m.net.toFixed(2)}
+                {breakdownRows.map((row) => (
+                  <tr key={row.key}>
+                    <td>{row.month}</td>
+                    <td>₹{row.income.toFixed(2)}</td>
+                    <td>₹{row.expenses.toFixed(2)}</td>
+                    <td style={{ fontWeight: 600, color: row.net >= 0 ? 'var(--color-success-text)' : 'var(--color-danger-text)' }}>
+                      ₹{row.net.toFixed(2)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {data.monthly.length === 0 && <p className="muted" style={{ marginTop: 12 }}>No activity in this period.</p>}
+            {breakdownRows.length === 0 && <p className="muted" style={{ marginTop: 12 }}>No activity in this period.</p>}
           </div>
         </>
       )}

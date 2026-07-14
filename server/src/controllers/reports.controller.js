@@ -187,6 +187,60 @@ export const financialSummary = asyncHandler(async (req, res) => {
   });
 });
 
+export const balanceSheet = asyncHandler(async (req, res) => {
+  const landlordId = new mongoose.Types.ObjectId(req.user.id);
+  const asOf = req.query.asOf ? endOfDayFromDateString(req.query.asOf) : new Date();
+  const propertyFilter = req.query.propertyId ? new mongoose.Types.ObjectId(req.query.propertyId) : null;
+
+  const invoiceMatch = { landlord: landlordId, status: { $in: ['sent', 'partial', 'overdue'] }, createdAt: { $lte: asOf } };
+  const paymentMatch = { landlord: landlordId, paidAt: { $lte: asOf } };
+  const expenseMatch = { landlord: landlordId, date: { $lte: asOf } };
+  const leaseMatch = { landlord: landlordId, status: 'active', startDate: { $lte: asOf } };
+  if (propertyFilter) {
+    invoiceMatch.property = propertyFilter;
+    paymentMatch.property = propertyFilter;
+    expenseMatch.property = propertyFilter;
+    leaseMatch.property = propertyFilter;
+  }
+
+  const [receivableRows, cashRows, expenseRows, depositRows, advanceRows] = await Promise.all([
+    Invoice.aggregate([
+      { $match: invoiceMatch },
+      { $group: { _id: null, outstanding: { $sum: { $subtract: ['$total', '$amountPaid'] } } } },
+    ]),
+    Payment.aggregate([{ $match: paymentMatch }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+    Expense.aggregate([{ $match: expenseMatch }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+    Lease.aggregate([{ $match: leaseMatch }, { $group: { _id: null, total: { $sum: '$securityDeposit' } } }]),
+    Lease.aggregate([{ $match: leaseMatch }, { $group: { _id: null, total: { $sum: '$advanceRent' } } }]),
+  ]);
+
+  const accountsReceivable = receivableRows[0]?.outstanding || 0;
+  const cashCollected = cashRows[0]?.total || 0;
+  const expensesPaid = expenseRows[0]?.total || 0;
+  const securityDepositsHeld = depositRows[0]?.total || 0;
+  const advanceRentHeld = advanceRows[0]?.total || 0;
+
+  const cash = cashCollected - expensesPaid;
+  const totalAssets = cash + accountsReceivable;
+  const totalLiabilities = securityDepositsHeld + advanceRentHeld;
+  const netEquity = totalAssets - totalLiabilities;
+
+  res.json({
+    asOf: asOf.toISOString(),
+    assets: {
+      cash,
+      accountsReceivable,
+      total: totalAssets,
+    },
+    liabilities: {
+      securityDepositsHeld,
+      advanceRentHeld,
+      total: totalLiabilities,
+    },
+    equity: netEquity,
+  });
+});
+
 export const dashboardSummary = asyncHandler(async (req, res) => {
   const landlordId = new mongoose.Types.ObjectId(req.user.id);
 

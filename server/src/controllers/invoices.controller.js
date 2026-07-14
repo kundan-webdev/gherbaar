@@ -44,6 +44,11 @@ export const getOne = asyncHandler(async (req, res) => {
   res.json({ invoice });
 });
 
+export const update = asyncHandler(async (req, res) => {
+  const invoice = await invoiceService.updateInvoice(req.user.id, req.params.id, req.body);
+  res.json({ invoice });
+});
+
 export const updateStatus = asyncHandler(async (req, res) => {
   const invoice = await findOwnedOrThrow(req.params.id, req.user.id);
   invoice.status = req.body.status;

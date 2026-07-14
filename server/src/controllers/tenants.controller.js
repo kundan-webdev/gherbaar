@@ -7,8 +7,20 @@ import { getPagination, paginatedResponse } from '../utils/pagination.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { getManagerPropertyIds } from '../utils/managerAccess.js';
 import * as tenantAccountService from '../services/tenantAccountService.js';
+import { storeFiles } from '../services/storageService.js';
 
-const UPDATABLE_FIELDS = ['name', 'phone', 'idProofType', 'idProofNumber', 'emergencyContact', 'isActive'];
+const UPDATABLE_FIELDS = [
+  'name',
+  'phone',
+  'idProofType',
+  'idProofNumber',
+  'aadhaarNumber',
+  'moveInDate',
+  'documentsVerified',
+  'emergencyContact',
+  'isActive',
+];
+const MAX_DOCUMENTS_PER_TENANT = 8;
 
 async function findOwnedOrThrow(id, landlordId) {
   const tenant = await TenantProfile.findOne({ _id: id, addedBy: landlordId });
@@ -63,8 +75,27 @@ export const update = asyncHandler(async (req, res) => {
   for (const field of UPDATABLE_FIELDS) {
     if (field in req.body) tenant[field] = req.body[field];
   }
+  if ('documentsVerified' in req.body) {
+    tenant.verifiedAt = req.body.documentsVerified ? new Date() : null;
+  }
   await tenant.save();
   res.json({ tenant });
+});
+
+export const uploadDocuments = asyncHandler(async (req, res) => {
+  const tenant = await findOwnedOrThrow(req.params.id, req.user.id);
+
+  if (!req.files || req.files.length === 0) {
+    throw ApiError.badRequest('No documents were uploaded');
+  }
+  if (tenant.documents.length + req.files.length > MAX_DOCUMENTS_PER_TENANT) {
+    throw ApiError.badRequest(`A tenant can have at most ${MAX_DOCUMENTS_PER_TENANT} documents`);
+  }
+
+  const urls = await storeFiles(req.files, 'tenants');
+  tenant.documents.push(...urls);
+  await tenant.save();
+  res.status(201).json({ tenant });
 });
 
 export const remove = asyncHandler(async (req, res) => {

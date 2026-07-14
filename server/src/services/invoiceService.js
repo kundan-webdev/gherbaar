@@ -76,3 +76,49 @@ export async function createInvoice(landlordId, payload) {
 
   return invoice;
 }
+
+export async function updateInvoice(landlordId, invoiceId, payload) {
+  const invoice = await Invoice.findOne({ _id: invoiceId, landlord: landlordId }).populate('tenant', 'name');
+  if (!invoice) {
+    throw ApiError.notFound('Invoice not found');
+  }
+  if (!['draft', 'sent'].includes(invoice.status)) {
+    throw ApiError.badRequest('Only draft or sent invoices can be edited');
+  }
+
+  const prevReading = payload.prevReading !== undefined ? payload.prevReading : invoice.electricity.prevReading;
+  const currReading = payload.currReading !== undefined ? payload.currReading : invoice.electricity.currReading;
+  if (currReading < prevReading) {
+    throw ApiError.badRequest('Current meter reading cannot be less than previous reading');
+  }
+
+  const unitsUsed = currReading - prevReading;
+  const ratePerUnit = invoice.electricity.ratePerUnit;
+  const electricityAmount = unitsUsed * ratePerUnit;
+  const previousDues = payload.previousDues !== undefined ? payload.previousDues : invoice.previousDues;
+  const subtotal = invoice.rentAmount + electricityAmount;
+  const total = subtotal + previousDues;
+
+  invoice.periodFrom = payload.periodFrom || invoice.periodFrom;
+  invoice.periodTo = payload.periodTo || invoice.periodTo;
+  invoice.electricity = { prevReading, currReading, unitsUsed, ratePerUnit, amount: electricityAmount };
+  invoice.previousDues = previousDues;
+  invoice.subtotal = subtotal;
+  invoice.total = total;
+  if (payload.note !== undefined) invoice.note = payload.note;
+
+  if (payload.upiId !== undefined) {
+    invoice.upiId = payload.upiId;
+    invoice.upiDeepLink = payload.upiId
+      ? buildUpiDeepLink({
+          upiId: payload.upiId,
+          payeeName: invoice.tenant?.name || 'Tenant',
+          amount: total,
+          note: invoice.note,
+        })
+      : null;
+  }
+
+  await invoice.save();
+  return invoice;
+}

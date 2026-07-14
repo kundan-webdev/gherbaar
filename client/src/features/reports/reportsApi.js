@@ -24,3 +24,8 @@ export async function getFinancialSummary(params = {}) {
   const { data } = await axiosClient.get('/reports/financials', { params });
   return data;
 }
+
+export async function getBalanceSheet(params = {}) {
+  const { data } = await axiosClient.get('/reports/balance-sheet', { params });
+  return data;
+}

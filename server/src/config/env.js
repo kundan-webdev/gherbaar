@@ -16,4 +16,9 @@ export const env = {
   jwtSecret: required('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || null,
+    apiKey: process.env.CLOUDINARY_API_KEY || null,
+    apiSecret: process.env.CLOUDINARY_API_SECRET || null,
+  },
 };
