@@ -23,3 +23,9 @@ export const uploadTenantDocuments = multer({
   fileFilter: fileFilter(ALLOWED_DOCUMENT_MIME_TYPES, 'Only JPEG, PNG, WEBP, or PDF files are allowed'),
   limits: { fileSize: 8 * 1024 * 1024, files: 5 },
 });
+
+export const uploadTenantPhoto = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: fileFilter(ALLOWED_MIME_TYPES, 'Only JPEG, PNG, or WEBP images are allowed'),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+});

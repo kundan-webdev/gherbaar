@@ -7,7 +7,7 @@ import { getPagination, paginatedResponse } from '../utils/pagination.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
 import { getManagerPropertyIds } from '../utils/managerAccess.js';
 import * as tenantAccountService from '../services/tenantAccountService.js';
-import { storeFiles } from '../services/storageService.js';
+import { storeFile, storeFiles, deleteFile } from '../services/storageService.js';
 
 const UPDATABLE_FIELDS = [
   'name',
@@ -96,6 +96,34 @@ export const uploadDocuments = asyncHandler(async (req, res) => {
   tenant.documents.push(...urls);
   await tenant.save();
   res.status(201).json({ tenant });
+});
+
+export const uploadPhoto = asyncHandler(async (req, res) => {
+  const tenant = await findOwnedOrThrow(req.params.id, req.user.id);
+
+  if (!req.file) {
+    throw ApiError.badRequest('No photo was uploaded');
+  }
+
+  const previousPhotoUrl = tenant.photoUrl;
+  tenant.photoUrl = await storeFile(req.file, 'tenants');
+  await tenant.save();
+  if (previousPhotoUrl) await deleteFile(previousPhotoUrl);
+  res.status(201).json({ tenant });
+});
+
+export const removePhoto = asyncHandler(async (req, res) => {
+  const tenant = await findOwnedOrThrow(req.params.id, req.user.id);
+
+  if (!tenant.photoUrl) {
+    throw ApiError.badRequest('No photo to remove');
+  }
+
+  const previousPhotoUrl = tenant.photoUrl;
+  tenant.photoUrl = null;
+  await tenant.save();
+  await deleteFile(previousPhotoUrl);
+  res.json({ tenant });
 });
 
 export const remove = asyncHandler(async (req, res) => {

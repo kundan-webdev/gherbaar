@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, KeyRound, Eye, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { UserPlus, KeyRound, Eye, ShieldCheck, ShieldAlert, User } from 'lucide-react';
 import { listTenants, createTenant } from '../../features/tenants/tenantsApi.js';
 
 const emptyForm = { name: '', phone: '', email: '', aadhaarNumber: '', moveInDate: '' };
@@ -94,6 +94,7 @@ export default function TenantsListPage() {
           <table>
             <thead>
               <tr>
+                <th></th>
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Email</th>
@@ -105,6 +106,30 @@ export default function TenantsListPage() {
             <tbody>
               {data?.items.map((tenant) => (
                 <tr key={tenant._id}>
+                  <td>
+                    {tenant.photoUrl ? (
+                      <img
+                        src={tenant.photoUrl}
+                        alt={tenant.name}
+                        style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--color-border)' }}
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--color-surface-alt)',
+                          border: '1px solid var(--color-border)',
+                        }}
+                      >
+                        <User size={14} />
+                      </span>
+                    )}
+                  </td>
                   <td>{tenant.name}</td>
                   <td>{tenant.phone}</td>
                   <td>{tenant.email || '-'}</td>

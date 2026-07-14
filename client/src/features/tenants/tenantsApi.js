@@ -28,3 +28,17 @@ export async function uploadTenantDocuments(id, files) {
   });
   return data.tenant;
 }
+
+export async function uploadTenantPhoto(id, file) {
+  const formData = new FormData();
+  formData.append('photo', file);
+  const { data } = await axiosClient.post(`/tenants/${id}/photo`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.tenant;
+}
+
+export async function removeTenantPhoto(id) {
+  const { data } = await axiosClient.delete(`/tenants/${id}/photo`);
+  return data.tenant;
+}

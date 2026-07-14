@@ -11,6 +11,7 @@ const tenantProfileSchema = new mongoose.Schema(
     idProofNumber: { type: String, trim: true },
     aadhaarNumber: { type: String, trim: true },
     moveInDate: { type: Date, default: null },
+    photoUrl: { type: String, default: null },
     documents: [{ type: String }],
     documentsVerified: { type: Boolean, default: false },
     verifiedAt: { type: Date, default: null },

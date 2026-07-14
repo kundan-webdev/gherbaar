@@ -1,8 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Save, ShieldCheck, ShieldAlert, Upload } from 'lucide-react';
-import { getTenant, updateTenant, uploadTenantDocuments } from '../../features/tenants/tenantsApi.js';
+import { ArrowLeft, Save, ShieldCheck, ShieldAlert, Upload, Camera, User, X } from 'lucide-react';
+import {
+  getTenant,
+  updateTenant,
+  uploadTenantDocuments,
+  uploadTenantPhoto,
+  removeTenantPhoto,
+} from '../../features/tenants/tenantsApi.js';
 import { PhotoGallery } from '../../components/PhotoGallery.jsx';
 
 function toDateInputValue(date) {
@@ -15,6 +21,19 @@ export default function TenantDetailPage() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(null);
   const [files, setFiles] = useState([]);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState(null);
+  const photoInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!photoFile) {
+      setPhotoPreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(photoFile);
+    setPhotoPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [photoFile]);
 
   const { data: tenant, isLoading } = useQuery({ queryKey: ['tenants', id], queryFn: () => getTenant(id) });
 
@@ -54,6 +73,20 @@ export default function TenantDetailPage() {
     },
   });
 
+  const photoMutation = useMutation({
+    mutationFn: () => uploadTenantPhoto(id, photoFile),
+    onSuccess: () => {
+      invalidate();
+      setPhotoFile(null);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    },
+  });
+
+  const removePhotoMutation = useMutation({
+    mutationFn: () => removeTenantPhoto(id),
+    onSuccess: invalidate,
+  });
+
   function handleSave(e) {
     e.preventDefault();
     saveMutation.mutate({
@@ -73,6 +106,11 @@ export default function TenantDetailPage() {
     if (files.length > 0) uploadMutation.mutate();
   }
 
+  function handlePhotoUpload(e) {
+    e.preventDefault();
+    if (photoFile) photoMutation.mutate();
+  }
+
   if (isLoading || !tenant || !form) return <p className="muted">Loading…</p>;
 
   return (
@@ -82,6 +120,35 @@ export default function TenantDetailPage() {
           <Link to="/tenants" className="btn secondary" style={{ padding: '6px 10px' }}>
             <ArrowLeft size={15} />
           </Link>
+          {tenant.photoUrl ? (
+            <img
+              src={tenant.photoUrl}
+              alt={tenant.name}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '1px solid var(--color-border)',
+              }}
+            />
+          ) : (
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--color-surface-alt)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-muted, #888)',
+              }}
+            >
+              <User size={18} />
+            </span>
+          )}
           {tenant.name}
         </h1>
         <button
@@ -168,7 +235,60 @@ export default function TenantDetailPage() {
         </form>
 
         <div className="card" style={{ alignSelf: 'start' }}>
-          <h3 style={{ marginBottom: 4 }}>Verification Status</h3>
+          <h3 style={{ marginBottom: 10 }}>Profile Photo</h3>
+          {photoPreviewUrl || tenant.photoUrl ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <img
+                src={photoPreviewUrl || tenant.photoUrl}
+                alt={tenant.name}
+                style={{
+                  width: 90,
+                  height: 90,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '1px solid var(--color-border)',
+                }}
+              />
+              {photoPreviewUrl && <span className="muted" style={{ fontSize: 12 }}>Preview — not uploaded yet</span>}
+              {!photoPreviewUrl && tenant.photoUrl && (
+                <button
+                  type="button"
+                  className="btn secondary"
+                  style={{ padding: '6px 10px', fontSize: 12 }}
+                  onClick={() => removePhotoMutation.mutate()}
+                  disabled={removePhotoMutation.isPending}
+                >
+                  <X size={13} /> {removePhotoMutation.isPending ? 'Removing…' : 'Remove Photo'}
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="muted" style={{ fontSize: 13 }}>No photo uploaded yet.</p>
+          )}
+          <form onSubmit={handlePhotoUpload} style={{ marginTop: 12 }}>
+            <div className="form-group">
+              <label>Upload Photo (JPG, PNG or WEBP)</label>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setPhotoFile(e.target.files[0] || null)}
+              />
+            </div>
+            {photoMutation.isError && (
+              <p className="error-text">{photoMutation.error.response?.data?.error?.message || 'Failed to upload photo'}</p>
+            )}
+            {removePhotoMutation.isError && (
+              <p className="error-text">
+                {removePhotoMutation.error.response?.data?.error?.message || 'Failed to remove photo'}
+              </p>
+            )}
+            <button className="btn secondary" type="submit" disabled={!photoFile || photoMutation.isPending}>
+              <Camera size={15} /> {photoMutation.isPending ? 'Uploading…' : 'Upload Photo'}
+            </button>
+          </form>
+
+          <h3 style={{ marginTop: 22, marginBottom: 4 }}>Verification Status</h3>
           <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
             {tenant.documentsVerified
               ? `Documents verified on ${new Date(tenant.verifiedAt).toLocaleDateString('en-IN')}`

@@ -52,3 +52,23 @@ export async function storeFile(file, folder) {
 export async function storeFiles(files, folder) {
   return Promise.all(files.map((file) => storeFile(file, folder)));
 }
+
+function extractCloudinaryPublicId(url) {
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
+  return match ? match[1] : null;
+}
+
+export async function deleteFile(url) {
+  if (!url) return;
+  if (isCloudStorageEnabled && url.includes('res.cloudinary.com')) {
+    const publicId = extractCloudinaryPublicId(url);
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId, { resource_type: 'image' }).catch(() => {});
+    }
+    return;
+  }
+  if (url.startsWith('/uploads/')) {
+    const filePath = path.join(uploadsRoot, url.slice('/uploads/'.length));
+    fs.unlink(filePath, () => {});
+  }
+}
